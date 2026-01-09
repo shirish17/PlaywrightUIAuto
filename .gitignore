@@ -35,3 +35,6 @@ target/
 # Logs
 *.log
 >>>>>>> f81ecca (first commit for gitignore and pom files.)
+=========
+# It contains installed dependencies and can be regenerated 
+node_modules/

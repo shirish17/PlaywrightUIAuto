@@ -12,6 +12,9 @@
 		<maven.compiler.source>22</maven.compiler.source>
 		<maven.compiler.target>22</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- For reports desired pattern since adapter doesn't support appending
+		pattern on index.html -->
+		<maven.build.timestamp.format>d-MMM-yy_HH-mm-ss</maven.build.timestamp.format>
 		<!-- Centralized Cucumber version -->
 		<cucumber.version>7.33.0</cucumber.version>
 	</properties>
@@ -80,6 +83,12 @@
 			<version>3.4.4</version>
 		</dependency>
 
+		<!-- Extent Cucumber Adapter  -->
+		<dependency>
+			<groupId>tech.grasshopper</groupId>
+			<artifactId>extentreports-cucumber7-adapter</artifactId>
+			<version>1.14.0</version>
+		</dependency>
 
 	</dependencies>
 
@@ -102,6 +111,33 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.2.5</version>
 				<configuration>
+					<suiteXmlFiles>
+						<suiteXmlFile>testng.xml</suiteXmlFile>
+					</suiteXmlFiles>
+					<!-- Override adapter properties with resolved timestamp -->
+					<systemPropertyVariables>
+						<!-- Spark (HTML) -->
+						<extent.reporter.spark.start>true</extent.reporter.spark.start>
+						<extent.reporter.spark.out>
+							extent-reports/html/index_${maven.build.timestamp}.html
+						</extent.reporter.spark.out>
+
+						<!-- PDF -->
+						<extent.reporter.pdf.start>true</extent.reporter.pdf.start>
+						<extent.reporter.pdf.out>
+							extent-reports/pdf/Execution_${maven.build.timestamp}.pdf
+						</extent.reporter.pdf.out>
+
+						<!-- Optional: Ported HTML (legacy-style) 
+						<extent.reporter.html.start>true</extent.reporter.html.start>
+						<extent.reporter.html.out>
+							extent-reports/html/legacy_${maven.build.timestamp}.html
+						</extent.reporter.html.out>-->
+
+						<!-- Screenshots into a fixed folder -->
+						<screenshot.dir>extent-reports/screenshots/</screenshot.dir>
+						<screenshot.rel.path>../screenshots/</screenshot.rel.path>
+					</systemPropertyVariables>
 					<includes>
 						<include>**/RunCucumberTest.java</include>
 					</includes>

@@ -38,3 +38,7 @@ target/
 =========
 # It contains installed dependencies and can be regenerated 
 node_modules/
+==========
+# Exclude test reports and test-output folders
+extent-reports/
+test-output/

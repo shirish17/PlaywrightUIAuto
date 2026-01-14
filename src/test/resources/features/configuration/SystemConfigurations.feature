@@ -17,9 +17,6 @@ Feature: System configuration page - Tabs with defaults and update capabilities
       | editbox  | Number of Characters to Check for Institution Name   | 4        |
       | button   | Deploy                                               | disabled |
 
-  #Examples:
-  #| page          | destinationPage    |
-  #| Configuration | System Information |
   Scenario: Check initial state of the List(s) tab when the user opens it
     When the user navigates to "List(s)" tab
     Then the user should be on the "List(s)" tab
@@ -29,9 +26,6 @@ Feature: System configuration page - Tabs with defaults and update capabilities
       | searchbox | Filter Items... | Filter Items... |
       | linkText  | Country Name    | Country Name    |
 
-  #Examples:
-  #| page    | destinationPage |
-  #| List(s) | List(s)         |
   Scenario Outline: Add a new active country
     When the user adds a country named "<country>" and activates it
     Then the country "<country>" appears in the list

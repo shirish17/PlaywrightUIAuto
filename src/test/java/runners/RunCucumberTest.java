@@ -8,7 +8,7 @@ import io.cucumber.testng.CucumberOptions;
 
 @CucumberOptions(
     features = "src/test/resources/features",  // feature folder path
-    glue = {"steps"},
+    glue = {"steps","hooks"},
     //tags="@smoke or @regression",// step definition path
     plugin = {"pretty",
     		"html:target/cucumber-report.html",

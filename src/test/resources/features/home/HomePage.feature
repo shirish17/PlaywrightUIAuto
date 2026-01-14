@@ -8,7 +8,8 @@ Feature: Home page features including company logo, main navigation links, bell 
     Given the user is on "<page>" page
     Then the company logo "<companyName>" is visible on the top navigation bar
     When the user navigates to the homepage using the company logo
+    Then user is presented by welcome "<welcomeText>" text
 
     Examples:
-      | page          | companyName |
-      | Configuration | Sitero      |
+      | page          | companyName |welcomeText|
+      | Configuration | Sitero      |Welcome to CTMS Portal|

@@ -12,7 +12,7 @@ import io.cucumber.testng.CucumberOptions;
     //tags="@smoke or @regression",// step definition path
     plugin = {"pretty",
     		"html:target/cucumber-report.html",
-    		"com.aventstack.extentreports.cucumber.adapter.ExtentCucumberAdapter:extent-reports/"}
+    		"com.aventstack.extentreports.cucumber.adapter.ExtentCucumberAdapter:"}
 )
 public class RunCucumberTest extends AbstractTestNGCucumberTests {
 	@Override

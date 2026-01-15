@@ -21,7 +21,6 @@ import java.util.Properties;
 
 public final class PropertiesLoader {
 	
-	
 	// Flat filenames (no env subfolders)	
 	private static final String ENV_FILE_TEMPLATE = "config/config-%s.properties";
 
@@ -38,28 +37,30 @@ public final class PropertiesLoader {
 	 * Entry point: resolve env strictly (no dev fallback), then load properties.
 	 */
 	public static Properties load() throws IOException {
-		String env = resolveEnvStrict();
+		String env = normalizeEnv(resolveEnvStrict());
 		return loadForEnv(env);
 	}
+	
 
 	/**
 	 * Load properties for a given env (assumes env already resolved).
 	 */
 	public static Properties loadForEnv(String env) throws IOException {
-		if (env == null || env.trim().isEmpty()) {
-			throw new IllegalArgumentException(
-					"env is required (e.g., dev/val/uat) — no default will be used. Either pass via CL or env variable or test or app files");
-		}
-		final String normalizedEnv = env.trim();
+		String normalizedEnv = normalizeEnv(env);		
+        if (!isNonBlank(normalizedEnv)) {
+            throw new IllegalArgumentException("env is required (dev/val/uat etc.).");
+        }                
+		
 
 		// 1) Allow direct URL/file override — highest priority
 		String urlSpec = firstNonBlank(System.getProperty("configUrl"), System.getenv("CONFIG_URL"));
 		if (isNonBlank(urlSpec)) {
 			return loadFromUrlOrFileSpec(urlSpec);
 		}
+		
 
 		// 2) Classpath (TEST precedes MAIN automatically during test runs)
-		String resourcePath = String.format(ENV_FILE_TEMPLATE, normalizedEnv);
+        String resourcePath = String.format(ENV_FILE_TEMPLATE, normalizedEnv);
 
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		if (cl == null)
@@ -195,18 +196,9 @@ public final class PropertiesLoader {
 		}
 		return null;
 	}
-
-	// Convenience main for manual testing
-	public static void main(String[] args) throws Exception {
-		Properties props = PropertiesLoader.load(); // strict env resolution
-		String envEffective = resolveEnvStrict();
-		System.out.println("Effective env = " + envEffective);
-		System.out.println("Loaded " + props.size() + " properties.");
-
-		String baseUrl = props.getProperty("base.url");
-		if (baseUrl != null) {
-			System.out.println("base.url = " + baseUrl);
-		}
+	private static String normalizeEnv(String env) {
+		return env == null ? null : env.trim().toLowerCase();
 	}
+	
 
 }

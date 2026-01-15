@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import com.aventstack.extentreports.service.ExtentService;
+import com.cro.settings.PathManager;
 import com.cro.settings.PropertiesLoader;
 
 import io.cucumber.java.AfterAll;
@@ -29,6 +30,12 @@ public class GlobalHooks {
 			throw new IllegalStateException("Config not initialized. Did @BeforeAll run?");
 		}
 		return config.getProperty(key);
+	}
+	
+	@BeforeAll
+	public static void setupProjectRequiredDirectories() {
+		PathManager.createRequiredDirs();
+		
 	}
 
 	@BeforeAll

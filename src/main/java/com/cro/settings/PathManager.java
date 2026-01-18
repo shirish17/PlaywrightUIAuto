@@ -1,56 +1,71 @@
+/*
+ * This class is only for real filesystem outputs (reports, logs, screenshots, video, downloads).
+ */
+
 package com.cro.settings;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class PathManager {
+public final class PathManager {
 	private PathManager() {
 		//intentionally left blank to avoid constructor overloading
 	}
-	private static final Path BASE_DIR= Paths.get(System.getProperty("user.dir"));
+	private static final class Holder {
+        static final ResolvedPaths INSTANCE = resolveAll();
+    }
+	 private record ResolvedPaths(
+		        Path baseDir,
+		        Path reportDir,
+		        Path logDir,
+		        Path screenshotDir,
+		        Path videoDir,
+		        Path downloadDir
+		    ) { }
 	
-	public static Path testResourceDir() {
-		return BASE_DIR.resolve(PathConfig.get("resources.dir"));
-	}
-	
-	public static Path configDir() {
-		return PathManager.testResourceDir().resolve(PathConfig.get("config.dir"));		
-		//return BASE_DIR.resolve(PathConfig.get("config.dir"));
-	}
-	
-	public static Path reportDir() {
-		return BASE_DIR.resolve(PathConfig.get("report.dir"));
-	}
-	
-	public static Path logDir() {
-		return BASE_DIR.resolve(PathConfig.get("log.dir"));
-	}
-	
-	public static Path screenshotDir() {
-		return BASE_DIR.resolve(PathConfig.get("screenshot.dir"));
-	}
-	
-	public static Path videoDir() {
-		return BASE_DIR.resolve(PathConfig.get("video.dir"));
-	}
-	
-	public static Path downloadDir() {
-		return BASE_DIR.resolve(PathConfig.get("download.dir"));
-	}
-	
-	//create directories if missing
-	public static void createRequiredDirs() {
-		try {
-			Files.createDirectories(reportDir());
-			Files.createDirectories(logDir());
-			Files.createDirectories(screenshotDir());
-			Files.createDirectories(videoDir());
-			Files.createDirectories(downloadDir());
-		} catch(Exception e){
-			throw new RuntimeException("Error: Failed to created directories",e);
-		}
-	}
-	
+	 /** Reads base.dir from PathConfig (defaults to ${user.dir}) and normalizes to absolute Path. */
+	    private static Path baseDir() {
+	        String baseSpec = PathConfig.get("base.dir", System.getProperty("user.dir"));
+	        return Paths.get(baseSpec).toAbsolutePath().normalize();
+	    }
+	    
+	    public static Path baseDirPath()   { return Holder.INSTANCE.baseDir; }
+	    public static Path reportDir()     { return Holder.INSTANCE.reportDir; }
+	    public static Path logDir()        { return Holder.INSTANCE.logDir; }
+	    public static Path screenshotDir() { return Holder.INSTANCE.screenshotDir; }
+	    public static Path videoDir()      { return Holder.INSTANCE.videoDir; }
+	    public static Path downloadDir()   { return Holder.INSTANCE.downloadDir; }
+	    
+	    /** Ensure output folders exist; safe to call multiple times and in parallel. */
+	    public static void createRequiredDirs() {
+	        try {
+	            Files.createDirectories(reportDir());
+	            Files.createDirectories(logDir());
+	            Files.createDirectories(screenshotDir());
+	            Files.createDirectories(videoDir());
+	            Files.createDirectories(downloadDir());
+	        } catch (IOException e) {
+	            throw new RuntimeException("Error: Failed to create one or more directories", e);
+	        }
+	    }
+	 // --------- internal ---------
 
+	    private static ResolvedPaths resolveAll() {
+	        Path base        = baseDir();
+	        Path report      = resolveUnder(base, PathConfig.get("report.dir", "reports"));
+	        Path log         = resolveUnder(base, PathConfig.get("log.dir", "logs"));
+	        Path screenshots = resolveUnder(base, PathConfig.get("screenshot.dir", "extent-reports/screenshots"));
+	        Path video       = resolveUnder(base, PathConfig.get("video.dir", "extent-reports/screenshots"));
+	        Path download    = resolveUnder(base, PathConfig.get("download.dir", "downloads"));
+
+	        return new ResolvedPaths(base, report, log, screenshots, video, download);
+	    }
+
+	    private static Path resolveUnder(Path base, String spec) {
+	        Path p = Paths.get(spec);
+	        return p.isAbsolute() ? p.normalize() : base.resolve(p).toAbsolutePath().normalize();
+	    }
+	
 }

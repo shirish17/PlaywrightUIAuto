@@ -3,23 +3,32 @@
 	<Properties>
 		<!-- Root logs dir fixed -->
 		<Property name="logRootDir">logs</Property>
-		
-		<Property name="defaultEnv">default</Property>	
-	<Property name="envName">
-		${sys:ENV:-${sys:env:-${env:ENV:-${env:env:-${defaultEnv}}}}}</Property>
 
-	<!-- Compose the final logDir -->
-	<Property name="logDir">${logRootDir}/${envName}</Property>
+		<!-- Hard fallback only when test-default & app-default don't have env variable mentioned in properties file-->
+		<Property name="hardDefault">test</Property>
+
+		<!-- test file -> main file -> hard default -->
+		<Property name="defaultEnv">
+			${bundle:config.config-test-default:env:-${bundle:config.config-app-default:env:-${hardDefault}}}
+		</Property>
+
+		<!-- Final envName with CLI/OS override, else file-based defaultEnv -->
+		<Property name="envName">
+			${sys:ENV:-${sys:env:-${env:ENV:-${env:env:-${defaultEnv}}}}}
+		</Property>
+
+		<!-- Compose the final logDir -->
+		<Property name="logDir">${logRootDir}/${envName}</Property>
 
 
-	<!-- Timestamp captured at config load (run start) -->
-	<Property name="startTime">${date:yyyy-MM-dd_HH-mm-ss}</Property>
+		<!-- Timestamp captured at config load (run start) -->
+		<Property name="startTime">${date:yyyy-MM-dd_HH-mm-ss}</Property>
 
-	<!-- Use timestamped file name -->
-	<Property name="logFileName">application-${startTime}.log</Property>
-	<!-- Line pattern -->
-	<Property name="pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%t]
-		%logger{36} - %msg [env=%X{env}]%throwable%n</Property>
+		<!-- Use timestamped file name -->
+		<Property name="logFileName">application-${startTime}.log</Property>
+		<!-- Line pattern -->
+		<Property name="pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%t]
+			%logger{36} - %msg [env=%X{env}]%throwable%n</Property>
 	</Properties>
 
 	<Appenders>

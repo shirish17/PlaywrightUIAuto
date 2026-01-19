@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN" monitorInterval="60">
+
 	<Properties>
 		<!-- Root logs dir fixed -->
 		<Property name="logRootDir">logs</Property>
 
-		<!-- Hard fallback only when test-default & app-default don't have env variable mentioned in properties file-->
+		<!-- Hard fallback only when test-default & app-default don't have env
+		variable mentioned in properties file-->
 		<Property name="hardDefault">test</Property>
 
 		<!-- test file -> main file -> hard default -->
@@ -13,9 +15,15 @@
 		</Property>
 
 		<!-- Final envName with CLI/OS override, else file-based defaultEnv -->
-		<Property name="envName">
+		<Property name="envRaw">
 			${sys:ENV:-${sys:env:-${env:ENV:-${env:env:-${defaultEnv}}}}}
 		</Property>
+
+		<!-- 4) Normalize to lowercase -->
+		<Property name="envName">
+			${lower:${envRaw}}
+		</Property>
+
 
 		<!-- Compose the final logDir -->
 		<Property name="logDir">${logRootDir}/${envName}</Property>
@@ -35,8 +43,9 @@
 
 		<File name="FileAppender"
 			fileName="${logDir}/${logFileName}"
-			bufferedIo="true"
-			immediateFlush="false">
+			createOnDemand="true"
+			bufferedIo="false"
+			immediateFlush="true">
 			<PatternLayout pattern="${pattern}" />
 		</File>
 

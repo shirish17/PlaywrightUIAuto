@@ -89,6 +89,23 @@
 			<artifactId>extentreports-cucumber7-adapter</artifactId>
 			<version>1.14.0</version>
 		</dependency>
+		<!-- Source: https://mvnrepository.com/artifact/org.apache.groovy/groovy -->
+		<dependency>
+			<groupId>org.apache.groovy</groupId>
+			<artifactId>groovy</artifactId>
+			<version>5.0.3</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- Groovy JSR-223 engine (REQUIRED for log4j2 ScriptLookup) -->
+		<dependency>
+			<groupId>org.apache.groovy</groupId>
+			<artifactId>groovy-jsr223</artifactId>
+			<version>5.0.3</version>
+			<scope>test</scope>
+		</dependency>
+
+		
+
 
 	</dependencies>
 
@@ -171,7 +188,7 @@
 				<!-- NOTE: we do NOT set <env> here; your framework will
 				fallback to default.properties -->
 			</properties>
-		</profile>	
+		</profile>
 		<!-- PARALLEL: Opt-in with -Pparallel -->
 		<profile>
 			<id>parallel</id>

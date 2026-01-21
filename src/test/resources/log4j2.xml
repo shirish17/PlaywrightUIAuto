@@ -35,8 +35,10 @@
 		<!-- Use timestamped file name -->
 		<Property name="logFileName">application-${startTime}.log</Property>
 		<!-- Line pattern -->
-		<Property name="pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%t]
-			%logger{36} - %msg [env=%X{env}]%throwable%n</Property>
+		<Property name="pattern">
+			%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%t] %logger{36} - %msg
+			[env=%X{env}] [scenario=%X{scenario}]%throwable%n
+		</Property>
 	</Properties>
 
 	<Appenders>

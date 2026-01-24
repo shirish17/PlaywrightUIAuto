@@ -21,13 +21,16 @@ public class GlobalHooks {
         // 2) Load env config once (cached)
         config = PropertiesLoader.loadCached();
         String env = PropertiesLoader.effectiveEnv();
+        String browser = PropertiesLoader.effectiveBrowserCached();
         System.out.println("[GlobalHooks] Loaded env config for: " + env);
+        System.out.println("[GlobalHooks] Effective Browser: " + browser);
 
         // 3) Optional diagnostics: where path config came from + values
         PathConfig.dump(msg -> System.out.println("[PathConfig] " + msg));
 
-        // 4) Extent System Info
+        // 4) Extent System Info (ENV + BROWSER added here)
         ExtentService.getInstance().setSystemInfo("Environment", env);
+        ExtentService.getInstance().setSystemInfo("Browser", browser);
         ExtentService.getInstance().setSystemInfo("Base Dir",        PathManager.baseDirPath().toString());
         ExtentService.getInstance().setSystemInfo("Reports Dir",     PathManager.reportDir().toString());
         ExtentService.getInstance().setSystemInfo("Screenshots Dir", PathManager.screenshotDir().toString());

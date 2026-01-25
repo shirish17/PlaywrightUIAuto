@@ -42,3 +42,6 @@ node_modules/
 # Exclude test reports and test-output folders
 extent-reports/
 test-output/
+==============
+# Exclude playwright browser session folder since it's temporary
+Sessions/

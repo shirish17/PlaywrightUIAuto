@@ -27,7 +27,7 @@ public final class PropertiesLoader {
     private static final String SYS_PROP_BROWSER = "browser";
     private static final String ENVVAR_BROWSER = "BROWSER";
     private static final String PROPKEY_BROWSER = "browser";
-    private static final String DEFAULT_BROWSER = "chrome";
+    private static final String DEFAULT_BROWSER = "chrome";  //fallabck logic --> If no browser is found in properties, your loader silently falls back to chrome.
 
     private PropertiesLoader() {
         // intentionally left blank to avoid constructor overloading
@@ -108,27 +108,36 @@ public final class PropertiesLoader {
             return loadForEnv(envVar);
         }
 
-        // 3) Fallbacks (in exact order)
+        // 3) Fallbacks (in exact order), first resolve env if not found comeout (check in app-default), if found read URL, URL empty throw error
         Properties testDefaultProperties = tryLoadFromClasspath(TEST_DEFAULT_ENV_FILE);
         if (testDefaultProperties != null) {
-            String fallbackEnv = testDefaultProperties.getProperty("env");
-            if (fallbackEnv != null) {
-                System.setProperty("env", normalizeEnv(fallbackEnv));
+            String fallbackEnv = testDefaultProperties.getProperty("env");           
+            if (isNonBlank(fallbackEnv)) {
+            	System.setProperty("env", normalizeEnv(fallbackEnv));
+            	String baseUrl = testDefaultProperties.getProperty("base.url");
+            	if (!isNonBlank(baseUrl)) {
+            		throw new IllegalStateException("Missing required property 'base.url' in " + TEST_DEFAULT_ENV_FILE);
+            	}
+            	return testDefaultProperties; // only if env exists
             }
-            return testDefaultProperties;
         }
 
         Properties mainDefaultProperties = tryLoadFromClasspath(MAIN_DEFAULT_ENV_FILE);
         if (mainDefaultProperties != null) {
-            String fallbackEnv = mainDefaultProperties.getProperty("env");
-            if (fallbackEnv != null) {
-                System.setProperty("env", normalizeEnv(fallbackEnv));
+            String fallbackEnv = mainDefaultProperties.getProperty("env");            
+            if (isNonBlank(fallbackEnv)) {
+            	System.setProperty("env", normalizeEnv(fallbackEnv));
+            	String baseUrl = mainDefaultProperties.getProperty("base.url");
+                if (!isNonBlank(baseUrl)) {
+                    throw new IllegalStateException("Missing required property 'base.url' in " + MAIN_DEFAULT_ENV_FILE);
+                }
+                return mainDefaultProperties; //last place to resolve env before throwing error
             }
-            return mainDefaultProperties;
+            
         }
         
-        // 4) Nothing worked -> hard fail
-        throw new FileNotFoundException("Environment not supplied and default configs not found. Tried classpath: "
+        // 4) If we get here, env was not resolved anywhere → fail fast
+        throw new FileNotFoundException("Environment not supplied and default configs not found or missing 'env'. Tried: "
                 + TEST_DEFAULT_ENV_FILE + ", " + MAIN_DEFAULT_ENV_FILE);
     }
 
@@ -191,35 +200,73 @@ public final class PropertiesLoader {
         try {
             return CACHE.computeIfAbsent(defaultCacheKey, k -> {
                 try {
+                    // Try test-default first
                     Properties testCachedDefaultProperties = tryLoadFromClasspath(TEST_DEFAULT_ENV_FILE);
+                    Properties mainCachedDefaultProperties = tryLoadFromClasspath(MAIN_DEFAULT_ENV_FILE);
+
                     if (testCachedDefaultProperties != null) {
                         String fallbackEnv = testCachedDefaultProperties.getProperty("env");
-                        if (fallbackEnv != null) {
+                        String baseUrl = testCachedDefaultProperties.getProperty("base.url");
+                        if (isNonBlank(fallbackEnv)) {
                             System.setProperty("env", normalizeEnv(fallbackEnv));
+
+                            if (!isNonBlank(baseUrl)) {
+                                throw new IllegalStateException(
+                                    "Missing required property 'base.url' in " + TEST_DEFAULT_ENV_FILE
+                                );
+                            }
+
+                            System.out.println("[PropertiesLoader] Loaded properties from fallback: " 
+                                    + TEST_DEFAULT_ENV_FILE + " (env=" + fallbackEnv 
+                                    + ", base.url=" + baseUrl + ")");
+                            return testCachedDefaultProperties;
                         }
-                        return testCachedDefaultProperties;
                     }
 
-                    Properties mainCachedDefaultProperties = tryLoadFromClasspath(MAIN_DEFAULT_ENV_FILE);
+                    // Then try main-default
                     if (mainCachedDefaultProperties != null) {
                         String fallbackEnv = mainCachedDefaultProperties.getProperty("env");
-                        if (fallbackEnv != null) {
+                        String baseUrl = mainCachedDefaultProperties.getProperty("base.url");
+                        if (isNonBlank(fallbackEnv)) {
                             System.setProperty("env", normalizeEnv(fallbackEnv));
+
+                            if (!isNonBlank(baseUrl)) {
+                                throw new IllegalStateException(
+                                    "Missing required property 'base.url' in " + MAIN_DEFAULT_ENV_FILE
+                                );
+                            }
+
+                            System.out.println("[PropertiesLoader] Loaded properties from fallback: " 
+                                    + MAIN_DEFAULT_ENV_FILE + " (env=" + fallbackEnv 
+                                    + ", base.url=" + baseUrl + ")");
+                            return mainCachedDefaultProperties;
                         }
-                        return mainCachedDefaultProperties;
                     }
-                    throw new FileNotFoundException("Environment not supplied and default configs not found. "
-                            + "Tried classpath: " + TEST_DEFAULT_ENV_FILE + ", " + MAIN_DEFAULT_ENV_FILE);
+
+                    // If neither fallback works, throw
+                    String testMsg = (testCachedDefaultProperties == null) ? " (not found)" : " (found but missing 'env/base.url')";
+                    String mainMsg = (mainCachedDefaultProperties == null) ? " (not found)" : " (found but missing 'env/base.url')";
+
+                    throw new FileNotFoundException(
+                        "Unable to resolve environment configuration!\n" +
+                        "  1) No '-Denv' JVM property was set.\n" +
+                        "  2) No 'ENV' environment variable was set.\n" +
+                        "  3) No valid external config URL/path found: "
+                            + firstNonBlank(getSystemPropertyIgnoreCase("configUrl"), getEnvVarIgnoreCase("CONFIG_URL")) + "\n" +
+                        "  4) Default fallback properties either missing or invalid:\n" +
+                            "     - " + TEST_DEFAULT_ENV_FILE + testMsg + "\n" +
+                            "     - " + MAIN_DEFAULT_ENV_FILE + mainMsg + "\n" +
+                        "Please ensure one of the above sources provides a valid 'env' and 'base.url'."
+                    );
+
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
             });
         } catch (UncheckedIOException uioe) {
-            throw uioe.getCause();											
+            throw uioe.getCause();                                            
         }
-   
     }
-
     public static Properties loadForEnvCached(String env) throws IOException {
         String normalizedEnv = normalizeEnv(env);
         if (!isNonBlank(normalizedEnv)) {
@@ -363,8 +410,6 @@ public final class PropertiesLoader {
     // Lightweight browser enum + normalizer
     public enum Browser {
         CHROME, FIREFOX, EDGE, SAFARI;
-  
-
         static Browser fromStringStrict(String raw) {
             String s = (raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT));
             switch (s) {

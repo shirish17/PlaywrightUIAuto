@@ -1,37 +1,31 @@
-
 package hooks;
-
-import io.cucumber.java.*;
+ 
+import java.io.IOException;
 
 import com.cro.listeners.ScenarioContext;
 import com.cro.playwright.BrowserManager;
 import com.cro.settings.PropertiesLoader;
 
-import java.io.IOException;
-
-import org.apache.logging.log4j.ThreadContext;
-
-import com.cro.listeners.LogBridge;
-
+import io.cucumber.java.After;
+import io.cucumber.java.AfterStep;
+import io.cucumber.java.Before;
+import io.cucumber.java.BeforeStep;
+import io.cucumber.java.Scenario;
+ 
 public class ScenarioHooks {
-
+ 
 	@Before
-	public void before(Scenario scenario) throws IOException {
-		ScenarioContext.init(scenario.getName().replaceAll("[^a-zA-Z0-9-_]", "_"));
-		LogBridge.info("[Before] " + scenario.getName());
-		ThreadContext.put("threadId", String.valueOf(Thread.currentThread().threadId()));
-		ThreadContext.put("uuid", java.util.UUID.randomUUID().toString());
-		//reading browser name from JVM or Environment variable or properties file.
+	public void before(Scenario scenario) throws IOException {		
 		String browser = PropertiesLoader.effectiveBrowserCached();
-		BrowserManager.createContext(browser);
-
+	    BrowserManager.initBrowser(browser);
+	    BrowserManager.createContext(); 
 	}
-
+ 
 	@BeforeStep
 	public void beforeStep() {
 		ScenarioContext.markStepStart();
 	}
-
+ 
 	@AfterStep
 	public void afterStep(Scenario scenario) {
 		//long ms = ScenarioContext.stepDuration();
@@ -39,13 +33,11 @@ public class ScenarioHooks {
 		//ScenarioContext.clearStepTiming();
 		//LogBridge.step("Step completed");
 	}
-
+ 
 	@After
 	public void after(Scenario scenario) {
-		if (scenario.isFailed()) {
-			LogBridge.error("Scenario failed");
-		}
-		ScenarioContext.clear();
-		BrowserManager.closeContext();
-	}
+	    BrowserManager.closeContext();
+	    BrowserManager.closePlaywright();
+	} 
+
 }

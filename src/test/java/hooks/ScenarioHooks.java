@@ -14,7 +14,7 @@ import io.cucumber.java.Scenario;
  
 public class ScenarioHooks {
  
-	@Before
+	@Before(order=0)
 	public void before(Scenario scenario) throws IOException {		
 		String browser = PropertiesLoader.effectiveBrowserCached();
 	    BrowserManager.initBrowser(browser);

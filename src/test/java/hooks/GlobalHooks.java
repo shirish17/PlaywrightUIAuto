@@ -16,6 +16,9 @@ public class GlobalHooks {
 	private static Properties config;
 	private static String baseUrl;  //static because common for entire run
 	private static String env; //static because common for entire run
+	private static String OSName; //OS name for extent report
+	private static String browserVersion;
+	private static String applicationURL;
 	@BeforeAll
     public static void suiteInit() throws IOException {
         // 1) Ensure output dirs exist (idempotent)
@@ -24,7 +27,11 @@ public class GlobalHooks {
         // 2) Load env config once (cached)
         config = PropertiesLoader.loadCached();
         env = PropertiesLoader.effectiveEnv();
+        OSName=System.getProperty("os.name");
         String browser = PropertiesLoader.effectiveBrowserCached(); //non static because shared in each scneario
+        applicationURL=PropertiesLoader.loadCached().getProperty("base.url");
+        BrowserManager.initBrowser(browser); // REQUIRED for getting browser version
+        
      // 2a) Read base.url with fail-fast
         baseUrl = config.getProperty("base.url");
         if (baseUrl == null || baseUrl.isBlank()) {
@@ -37,9 +44,12 @@ public class GlobalHooks {
         // 3) Optional diagnostics: where path config came from + values
         PathConfig.dump(msg -> System.out.println("[PathConfig] " + msg));
  
-        // 4) Extent System Info (ENV + BROWSER added here)
+        // 4) Extent report Info (ENV + BROWSER added here)
         ExtentService.getInstance().setSystemInfo("Environment", env);
+        ExtentService.getInstance().setSystemInfo("OS Version",OSName);
         ExtentService.getInstance().setSystemInfo("Browser", browser);
+        ExtentService.getInstance().setSystemInfo("Browser Version",BrowserManager.getBrowserVersion());
+        ExtentService.getInstance().setSystemInfo("Execution URL",applicationURL);
         ExtentService.getInstance().setSystemInfo("Base Dir",        PathManager.baseDirPath().toString());
         ExtentService.getInstance().setSystemInfo("Reports Dir",     PathManager.reportDir().toString());
         ExtentService.getInstance().setSystemInfo("Screenshots Dir", PathManager.screenshotDir().toString());

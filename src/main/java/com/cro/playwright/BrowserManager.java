@@ -13,6 +13,9 @@ public final class BrowserManager {
     // 🔁 Per-scenario objects
     private static final ThreadLocal<BrowserContext> TL_CONTEXT = new ThreadLocal<>();
     private static final ThreadLocal<Page> TL_PAGE = new ThreadLocal<>();
+    
+    //for reading browser version
+    private static final ThreadLocal<String> TL_BROWSER_TYPE = new ThreadLocal<>();
  
     private BrowserManager() {
         // prevent instantiation
@@ -26,7 +29,9 @@ public final class BrowserManager {
         if (TL_PLAYWRIGHT.get() != null) {
             return; // already initialized for this thread
         }
- 
+        
+        TL_BROWSER_TYPE.set(browserType.toLowerCase());
+        
         Playwright playwright = Playwright.create();
         TL_PLAYWRIGHT.set(playwright);
  
@@ -44,6 +49,7 @@ public final class BrowserManager {
                 break;
  
             case "edge":
+            case "msedge":
                 browser = playwright.chromium().launch(
                         new BrowserType.LaunchOptions()
                                 .setHeadless(false)
@@ -133,5 +139,19 @@ public final class BrowserManager {
  
         TL_BROWSER.remove();
         TL_PLAYWRIGHT.remove();
+    } 
+    
+    //Method to get browser verstion and push data in Extent Report, note browser version is associated with actual playwright browser launched
+    public static String getBrowserVersion() {
+
+        Browser browser = TL_BROWSER.get();
+        String browserType = TL_BROWSER_TYPE.get();
+
+        if (browser == null || browserType == null) {
+            return "Unknown";
+        }
+
+        return browserType + " " + browser.version();
     }
+
 }

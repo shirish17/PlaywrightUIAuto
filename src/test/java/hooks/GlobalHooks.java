@@ -21,9 +21,11 @@ public class GlobalHooks {
 	private static String applicationURL;
 	@BeforeAll
     public static void suiteInit() throws IOException {
-        // 1) Ensure output dirs exist (idempotent)
+		//JVM prining JVM ID and thread count.
+		printRuntimeInfo();
+		
+		// 1) Ensure output dirs exist (idempotent)
         PathManager.createRequiredDirs();
- 
         // 2) Load env config once (cached)
         config = PropertiesLoader.loadCached();
         env = PropertiesLoader.effectiveEnv();
@@ -54,7 +56,8 @@ public class GlobalHooks {
         ExtentService.getInstance().setSystemInfo("Reports Dir",     PathManager.reportDir().toString());
         ExtentService.getInstance().setSystemInfo("Screenshots Dir", PathManager.screenshotDir().toString());
         ExtentService.getInstance().setSystemInfo("Logs Dir",        PathManager.logDir().toString());
-        ExtentService.getInstance().setSystemInfo("Downloads Dir",   PathManager.downloadDir().toString());        
+        ExtentService.getInstance().setSystemInfo("Downloads Dir",   PathManager.downloadDir().toString());
+        
     }
 	//This method will return values of the provided key
 	public static String getConfigValue(String key) {
@@ -68,6 +71,17 @@ public class GlobalHooks {
         }
         return baseUrl;
     }
+    
+    //Method to publish JVM ID and thread count on CMD, in framework fork harcoded=1, so it must return single JVM ID.
+    public static void printRuntimeInfo() {
+        System.out.println(
+            "=== RUNTIME INFO ===\n" +
+            "JVM PID        = " + ProcessHandle.current().pid() + "\n" +
+            "dp.threads    = " + System.getProperty("dp.threads") + "\n" +
+            "==============="
+        );
+    }
+    
 	@AfterAll
     public static void globalTeardown() {
         System.out.println("Run completed. Cleanup if needed.");

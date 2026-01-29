@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.example</groupId>
+	<groupId>com.cro</groupId>
 	<artifactId>PlaywrightUIAuto</artifactId>
 	<version>1.0-SNAPSHOT</version>
 
@@ -17,10 +17,9 @@
 		<maven.build.timestamp.format>d-MMM-yy_HH-mm-ss</maven.build.timestamp.format>
 		<!-- Centralized Cucumber version -->
 		<cucumber.version>7.33.0</cucumber.version>
-
 		<!-- Centralized place for fork and thread count if nothing else defines
 		these properties, use these sane defaults. -->
-		<dp.threads>1</dp.threads>		
+		<dp.threads>1</dp.threads>
 	</properties>
 
 	<dependencies>
@@ -151,6 +150,11 @@
 					<!-- Scenario-level concurrency for TestNG DataProvider -->
 					<parallel>tests</parallel>
 					<threadCount>${dp.threads}</threadCount>
+					<forkCount>1</forkCount> <!-- hard coded since multiple forks -->
+					<reuseForks>true</reuseForks>
+					<!-- Scenario-level concurrency for TestNG DataProvider -->
+					<parallel>tests</parallel>
+					<dataproviderthreadcount>${dp.threads}</dataproviderthreadcount>
 					<systemPropertyVariables>
 						<!-- Extent (kept as-is, with timestamped outputs) -->
 						<extent.reporter.spark.start>true</extent.reporter.spark.start>

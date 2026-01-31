@@ -94,7 +94,9 @@ public final class PathConfig {
             String val = p.getProperty(name);
             if (val != null) {
                 val = val.replace("${user.dir}", System.getProperty("user.dir"));
-                // Optional future: val = val.replace("${buildId}", System.getProperty("buildId", ""));
+                
+                // this is to read runid from properties file, which used during playwright session strorage folder. 
+                val = val.replace("${run.id}", System.getProperty("run.id", "local"));
                 p.setProperty(name, val);
             }
         }

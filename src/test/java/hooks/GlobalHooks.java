@@ -31,8 +31,7 @@ public class GlobalHooks {
         env = PropertiesLoader.effectiveEnv();
         OSName=System.getProperty("os.name");
         String browser = PropertiesLoader.effectiveBrowserCached(); //non static because shared in each scneario
-        applicationURL=PropertiesLoader.loadCached().getProperty("base.url");
-        BrowserManager.initBrowser(browser); // REQUIRED for getting browser version
+        applicationURL=PropertiesLoader.loadCached().getProperty("base.url");        
         
      // 2a) Read base.url with fail-fast
         baseUrl = config.getProperty("base.url");
@@ -49,14 +48,16 @@ public class GlobalHooks {
         // 4) Extent report Info (ENV + BROWSER added here)
         ExtentService.getInstance().setSystemInfo("Environment", env);
         ExtentService.getInstance().setSystemInfo("OS Version",OSName);
-        ExtentService.getInstance().setSystemInfo("Browser", browser);
-        ExtentService.getInstance().setSystemInfo("Browser Version",BrowserManager.getBrowserVersion());
+        ExtentService.getInstance().setSystemInfo("Browser", browser);        
         ExtentService.getInstance().setSystemInfo("Execution URL",applicationURL);
         ExtentService.getInstance().setSystemInfo("Base Dir",        PathManager.baseDirPath().toString());
         ExtentService.getInstance().setSystemInfo("Reports Dir",     PathManager.reportDir().toString());
         ExtentService.getInstance().setSystemInfo("Screenshots Dir", PathManager.screenshotDir().toString());
         ExtentService.getInstance().setSystemInfo("Logs Dir",        PathManager.logDir().toString());
         ExtentService.getInstance().setSystemInfo("Downloads Dir",   PathManager.downloadDir().toString());
+        System.out.println("dp.threads=" + System.getProperty("dp.threads") + " | Thread=" + Thread.currentThread().getName());
+
+
         
     }
 	//This method will return values of the provided key
@@ -84,7 +85,7 @@ public class GlobalHooks {
     
 	@AfterAll
     public static void globalTeardown() {
-        System.out.println("Run completed. Cleanup if needed.");
-        BrowserManager.closeContext();
+        System.out.println("Run completed. Cleanup if needed.");        
+        BrowserManager.closePlaywright();
     }
 }

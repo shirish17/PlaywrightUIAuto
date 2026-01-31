@@ -1,4 +1,4 @@
-@role_edit
+@role_create
 Feature: Home page features including company logo, main navigation links, bell icon and user icon.
   As an authenticated user
   I want to use home page to access core modules

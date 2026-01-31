@@ -16,9 +16,10 @@ public final class SessionManager {
      * Returns storageState path if session already exists.
      * Ensures only ONE thread creates session per user.
      */
-    public static Path getOrCreateSession(String role,Runnable loginFlow) {
-        Path sessionFile = PathManager.sessionDir().resolve(role + ".json");
-        Object lock = LOCKS.computeIfAbsent(role, u -> new Object());
+    public static Path getOrCreateSession(String role,String username,Runnable loginFlow) {
+        Path sessionFile = PathManager.sessionDir().resolve(role + "_"+username+".json");
+        String lockKey = role + "_" + username;
+        Object lock = LOCKS.computeIfAbsent(lockKey, u -> new Object());        
         synchronized (lock) {
             try {
                 if (Files.exists(sessionFile)) {
@@ -41,7 +42,7 @@ public final class SessionManager {
             	throw new RuntimeException("Session creation failed for role: " + role, e);
             }finally {
             	if (Files.exists(sessionFile)) {
-                    LOCKS.remove(role);
+                    LOCKS.remove(lockKey);
                 }
             }
         }

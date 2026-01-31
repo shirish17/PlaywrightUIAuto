@@ -1,4 +1,4 @@
-@role_edit
+@smoke @role_edit
 Feature: System configuration page - Tabs with defaults and update capabilities
   As a user
   I want to validate default state and update behavior of tabs under system configuration page
@@ -17,7 +17,7 @@ Feature: System configuration page - Tabs with defaults and update capabilities
       | toggle   | Institution_Duplicate Check On/Off                   | On       |
       | editbox  | Number of Characters to Check for Institution Name   | 4        |
       | button   | Deploy                                               | disabled |
-#@smoke
+
   Scenario: Check initial state of the List(s) tab when the user opens it
     When the user navigates to "List(s)" tab
     Then the user should be on the "List(s)" tab

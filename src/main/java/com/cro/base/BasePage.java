@@ -1,5 +1,12 @@
 package com.cro.base;
 
-public class BasePage {
+import com.cro.utils.UIActions;
 
+public abstract class BasePage {
+
+    protected final UIActions uiActions;
+
+    protected BasePage(UIActions uiActions) {
+        this.uiActions = uiActions;
+    }
 }

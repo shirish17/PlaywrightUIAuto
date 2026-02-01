@@ -3,6 +3,7 @@ package hooks;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import com.cro.extentreporting.ExtentReportMetada;
 import com.cro.listeners.ScenarioContext;
 import com.cro.playwright.BrowserInfo;
 import com.cro.playwright.BrowserManager;
@@ -28,45 +29,40 @@ public class ScenarioHooks {
 	    String browser = PropertiesLoader.effectiveBrowserCached();
 	    String role = RoleResolver.resolve(scenario);
 	    final String username=PropertiesLoader.getUsernameForRole(role);
+	    //Push user and role in Extent report
+	    ExtentReportMetada.put("User [Role: " + role + "]", username);
+	    
 	    final String password = PropertiesLoader.getPasswordForRole(role);
 	    BrowserManager.initBrowser(browser);
-
 	    BrowserInfo.captureOnce(BrowserManager.getBrowserVersion());
-
-	    
-
 	    Path sessionPath = SessionManager.getOrCreateSession(role,username, () -> {
-
+	    
 	        // 🔐 First thread only per role
 	        BrowserManager.createContext();
 
 	        try {
 	            BrowserManager.getPage().navigate(
 	                PropertiesLoader.loadCached().getProperty("base.url")
-	            );
+	            );	            
 	        } catch (IOException e) {
 	            throw new RuntimeException(e);
 	        }
 
 	        LoginFlow.performLogin(role, username, password);
-
 	        // 🔐 Persist session
 	        BrowserManager.getContext().storageState(
 	            new BrowserContext.StorageStateOptions()
 	                .setPath(PathManager.sessionDir().resolve(role + "_" + username+ ".json"))
 	        );
-
 	        BrowserManager.closeContext();
 	    });
 
 	    // 🚀 Always fresh context per scenario
 	    BrowserManager.createContext(sessionPath);
-
 	    System.out.println(
 	        "Thread=" + Thread.currentThread().getName() +
 	        " BrowserHash=" + System.identityHashCode(BrowserManager.getBrowserVersion())
-	    );
-
+	    );	 
 	}
  
 	@BeforeStep

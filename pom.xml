@@ -140,7 +140,8 @@
 				<version>3.2.5</version>
 
 				<configuration>
-
+					<!-- 🛑 HARD SAFETY NET: kill stuck JVM -->
+					<forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
 					<!-- TestNG suite -->
 					<suiteXmlFiles>
 						<suiteXmlFile>testng.xml</suiteXmlFile>

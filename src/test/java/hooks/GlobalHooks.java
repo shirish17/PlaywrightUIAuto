@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Properties;
  
 import com.aventstack.extentreports.service.ExtentService;
+import com.cro.extentreporting.ExtentReportMetada;
 import com.cro.playwright.BrowserManager;
 import com.cro.settings.PathConfig;
 import com.cro.settings.PathManager;
@@ -16,16 +17,16 @@ public class GlobalHooks {
 	private static Properties config;
 	private static String baseUrl;  //static because common for entire run
 	private static String env; //static because common for entire run
-	private static String OSName; //OS name for extent report
-	private static String browserVersion;
+	private static String OSName; //OS name for extent report	
 	private static String applicationURL;
 	@BeforeAll
     public static void suiteInit() throws IOException {
-		//JVM prining JVM ID and thread count.
+		//Printing JVM ID and thread count on Command prompt.
 		printRuntimeInfo();
 		
 		// 1) Ensure output dirs exist (idempotent)
         PathManager.createRequiredDirs();
+        
         // 2) Load env config once (cached)
         config = PropertiesLoader.loadCached();
         env = PropertiesLoader.effectiveEnv();
@@ -43,22 +44,36 @@ public class GlobalHooks {
         System.out.println("[GlobalHooks] Base URL: " + baseUrl);
  
         // 3) Optional diagnostics: where path config came from + values
-        PathConfig.dump(msg -> System.out.println("[PathConfig] " + msg));
+        PathConfig.dump(msg -> System.out.println("[PathConfig] " + msg));        
+        
+        
+     // 🔹 Collect metadata for extent report(NO publishing here)
+        ExtentReportMetada.put("Environment", env);
+        ExtentReportMetada.put("OS Version", OSName);
+	    ExtentReportMetada.put("Browser", browser);
+	    ExtentReportMetada.put("Execution URL",applicationURL);
+	    ExtentReportMetada.put("Base Directory",PathManager.baseDirPath().toString());
+	    ExtentReportMetada.put("Reports Directory",PathManager.reportDir().toString());
+	    ExtentReportMetada.put("Screenshots Directory", PathManager.screenshotDir().toString());
+	    ExtentReportMetada.put("Logs Directory",PathManager.logDir().toString());
+	    ExtentReportMetada.put("Downloads Directory",   PathManager.downloadDir().toString());
+	  
+	    
+	    
  
         // 4) Extent report Info (ENV + BROWSER added here)
-        ExtentService.getInstance().setSystemInfo("Environment", env);
-        ExtentService.getInstance().setSystemInfo("OS Version",OSName);
-        ExtentService.getInstance().setSystemInfo("Browser", browser);        
-        ExtentService.getInstance().setSystemInfo("Execution URL",applicationURL);
-        ExtentService.getInstance().setSystemInfo("Base Dir",        PathManager.baseDirPath().toString());
-        ExtentService.getInstance().setSystemInfo("Reports Dir",     PathManager.reportDir().toString());
-        ExtentService.getInstance().setSystemInfo("Screenshots Dir", PathManager.screenshotDir().toString());
-        ExtentService.getInstance().setSystemInfo("Logs Dir",        PathManager.logDir().toString());
-        ExtentService.getInstance().setSystemInfo("Downloads Dir",   PathManager.downloadDir().toString());
+        //ExtentService.getInstance().setSystemInfo("Environment", env);
+        //ExtentService.getInstance().setSystemInfo("OS Version",OSName);
+        //ExtentService.getInstance().setSystemInfo("Browser", browser);        
+        //ExtentService.getInstance().setSystemInfo("Execution URL",applicationURL);
+        //ExtentService.getInstance().setSystemInfo("Base Dir",        PathManager.baseDirPath().toString());
+        //ExtentService.getInstance().setSystemInfo("Reports Dir",     PathManager.reportDir().toString());
+        //ExtentService.getInstance().setSystemInfo("Screenshots Dir", PathManager.screenshotDir().toString());
+        //ExtentService.getInstance().setSystemInfo("Logs Dir",        PathManager.logDir().toString());
+        //ExtentService.getInstance().setSystemInfo("Downloads Dir",   PathManager.downloadDir().toString());
         System.out.println("dp.threads=" + System.getProperty("dp.threads") + " | Thread=" + Thread.currentThread().getName());
-
-
         
+      
     }
 	//This method will return values of the provided key
 	public static String getConfigValue(String key) {
@@ -85,7 +100,9 @@ public class GlobalHooks {
     
 	@AfterAll
     public static void globalTeardown() {
-        System.out.println("Run completed. Cleanup if needed.");        
+        System.out.println("Run completed. Cleanup if needed."); 
+      //Extent Report publish everything before closing
+        ExtentReportMetada.publishOnce();
         BrowserManager.closePlaywright();
     }
 }

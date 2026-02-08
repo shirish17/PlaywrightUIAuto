@@ -2,14 +2,13 @@ package hooks;
  
 import java.io.IOException;
 import java.util.Properties;
- 
-import com.aventstack.extentreports.service.ExtentService;
+
 import com.cro.extentreporting.ExtentReportMetada;
 import com.cro.playwright.BrowserManager;
 import com.cro.settings.PathConfig;
 import com.cro.settings.PathManager;
 import com.cro.settings.PropertiesLoader;
- 
+
 import io.cucumber.java.AfterAll;
 import io.cucumber.java.BeforeAll;
  
@@ -89,6 +88,6 @@ public class GlobalHooks {
         System.out.println("Run completed. Cleanup if needed."); 
       //Extent Report publish everything before closing
         ExtentReportMetada.publishOnce();
-        BrowserManager.closePlaywright();
+        BrowserManager.closeBrowser();
     }
 }

@@ -145,7 +145,7 @@ public final class BrowserManager {
         TL_PAGE.remove();
     }
  
-    public static void closePlaywright() {
+    public static void closeBrowser() {
  
         Browser browser = TL_BROWSER.get();
         if (browser != null) {

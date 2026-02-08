@@ -23,113 +23,99 @@ import io.cucumber.java.BeforeStep;
 import io.cucumber.java.Scenario;
 
 public class ScenarioHooks {
-
+    
     private final LoginFlow loginFlow;
-
-    // 🔥 PicoContainer injects LoginFlow (and its dependencies)
+    
     public ScenarioHooks(LoginFlow loginFlow) {
         this.loginFlow = loginFlow;
     }
-
+    
     @Before(order = 0)
     public void before(Scenario scenario) throws IOException {
-
-        // =========================
-        // Resolve execution inputs
-        // =========================
+        
         String browser = PropertiesLoader.effectiveBrowserCached();
         String role = RoleResolver.resolve(scenario);
         String username = PropertiesLoader.getUsernameForRole(role);
         String password = PropertiesLoader.getPasswordForRole(role);
-        int pageTimeOut=PropertiesLoader.getPageTimeout();
-
-        // Push metadata to Extent
+        int pageTimeout = PropertiesLoader.getPageTimeout();
+        
         ExtentReportMetada.put("User [Role: " + role + "]", username);
-
-        // =========================
-        // Browser init (ThreadLocal)
-        // =========================
+        
+        // 🚀 Ensure browser for THIS scenario thread
         BrowserManager.initBrowser(browser);
         BrowserInfo.captureOnce(BrowserManager.getBrowserVersion());
-
+        
         // =========================
-        // Session handling (role+user), this is place where actual URL is hit
+        // SESSION CREATION (THREAD SAFE)
         // =========================
         Path sessionPath = SessionManager.getOrCreateSession(role, username, () -> {
-
-            // 🔐 First thread per role+user only
+            
+            // Create context for login
             BrowserManager.createContext();
-
+            
             try {
                 BrowserManager.getPage().navigate(
-                        PropertiesLoader.loadCached().getProperty("base.url"),
-                        new Page.NavigateOptions()
-    			        .setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
-    			        .setTimeout(pageTimeOut)
+                    PropertiesLoader.loadCached().getProperty("base.url"),
+                    new Page.NavigateOptions()
+                        .setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
+                        .setTimeout(pageTimeout)
                 );
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }           
-            
-            // ✅ NON-STATIC flow call (Pico managed)
-            try {
-				loginFlow.performLogin(role, username, password);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-            // Persist storage state
-            BrowserManager.getContext().storageState(
-                new BrowserContext.StorageStateOptions()
-                    .setPath(PathManager.sessionDir()
-                        .resolve(role + "_" + username + ".json"))
-            );
-
-            BrowserManager.closeContext();
+                
+                // Perform login
+                loginFlow.performLogin(role, username, password);
+                
+                // Save session
+                BrowserManager.getContext().storageState(
+                    new BrowserContext.StorageStateOptions()
+                        .setPath(PathManager.sessionDir().resolve(role + "_" + username + ".json"))
+                );
+                
+                // ⭐ CRITICAL: Close context after saving session
+                BrowserManager.closeContext();
+                
+            } catch (Exception e) {
+                throw new RuntimeException("Session creation failed", e);
+            }
         });
-
+        
         // =========================
-        // Fresh context per scenario
+        // FRESH CONTEXT FOR SCENARIO WITH SESSION
         // =========================
         BrowserManager.createContext(sessionPath);
-
+        
+        // ⭐⭐⭐ CRITICAL FIX: Navigate to app to ACTIVATE the session ⭐⭐⭐
+        try {
+            String baseUrl = PropertiesLoader.loadCached().getProperty("base.url");
+            
+            BrowserManager.getPage().navigate(
+                baseUrl,
+                new Page.NavigateOptions()
+                    .setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
+                    .setTimeout(pageTimeout)
+            );
+            
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to navigate with loaded session", e);
+        }
+        
         System.out.println(
             "[HOOK] Thread=" + Thread.currentThread().getName() +
             " Browser=" + BrowserManager.getBrowserVersion()
         );
-        System.out.println(
-        	    "[DEBUG] Thread=" + Thread.currentThread().getName()
-        	);
-
-        	System.out.println(
-        	    "[DEBUG] BrowserVersion=" + BrowserManager.getBrowserVersion()
-        	);
-
-        	System.out.println(
-        	    "[DEBUG] ContextHash=" +
-        	    System.identityHashCode(BrowserManager.getContext())
-        	);
-
-        	System.out.println(
-        	    "[DEBUG] PageHash=" +
-        	    System.identityHashCode(BrowserManager.getPage())
-        	);
-
     }
-
+    
     @BeforeStep
     public void beforeStep() {
         ScenarioContext.markStepStart();
     }
-
+    
     @AfterStep
     public void afterStep(Scenario scenario) {
         // future: step-level logging / screenshots
     }
-
+    
     @After
     public void after(Scenario scenario) {
-        BrowserManager.closeContext();
+        BrowserManager.closeContext(); // ✔ per-scenario only
     }
 }

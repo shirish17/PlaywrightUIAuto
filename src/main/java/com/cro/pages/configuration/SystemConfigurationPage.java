@@ -2,6 +2,7 @@ package com.cro.pages.configuration;
 
 import com.cro.base.BasePage;
 import com.cro.utils.UIActions;
+import com.microsoft.playwright.options.LoadState;
 
 /**
  * Page Object for System Configuration page
@@ -14,6 +15,7 @@ public class SystemConfigurationPage extends BasePage {
     private static final String SYSTEM_CONFIG_MENU = "ul.dropdown_menu:has(a[routerlink='/console/systemConfig'])";
     private static final String SYSTEM_CONFIG_LINK = "a[routerlink='/console/systemConfig']";
     private static final String SYSTEM_CONFIG_URL = "**/console/systemConfig";
+    private static final String TENANT_POPUP="#showMultiTenantPopup";
 
 	public SystemConfigurationPage(UIActions uiActions) {
 		super(uiActions);
@@ -29,6 +31,13 @@ public class SystemConfigurationPage extends BasePage {
     public void addCountryAndActivate(String countryName) {
         try {
             System.out.println("[PAGE] Starting add country flow for: " + countryName);
+            
+            // Wait for page to load completely
+            uiActions.waitForLoadState(LoadState.NETWORKIDLE);
+            
+          //First check if multi-tenant popup displays, this is because existing session after login shows the popup.
+            uiActions.handleTenantSelection(TENANT_POPUP);
+            
             
             // Step 1: Navigate to System Configuration page
             navigateToSystemConfiguration();
@@ -59,11 +68,13 @@ public class SystemConfigurationPage extends BasePage {
             System.out.println("[PAGE] Navigating to System Configuration page");
             Thread.sleep(5000);
             // Scroll and hover on System tab
-            uiActions.mouseHover(SYSTEM_TAB);            
+            uiActions.mouseHover(SYSTEM_TAB); 
+            Thread.sleep(10000);
             
          // Wait for dropdown menu and get locator
             uiActions.waitAndGetLocator(SYSTEM_CONFIG_MENU);   
             
+            Thread.sleep(10000);
             // Click System Configuration link
             uiActions.click(SYSTEM_CONFIG_LINK);          
             

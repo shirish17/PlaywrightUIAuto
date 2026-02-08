@@ -58,7 +58,7 @@ public class LoginPage extends BasePage {
         uiActions.waitForLoadState(LoadState.NETWORKIDLE);
         
         //choose tenant (optional in case of multi-tenant activated for the user)
-        handleTenantSelection();
+        uiActions.handleTenantSelection(TENANT_POPUP);
         
       //This wait needed before clicking on user icon, since kendo still loading otherwise the spinner become infinite
         uiActions.waitForAllKendoLoadersComplete();       
@@ -121,20 +121,7 @@ public class LoginPage extends BasePage {
         } catch (Exception e) {
             throw new RuntimeException("Failed to submit login via JavaScript", e);
         }
-    }
-    
-    /**
-     * Handle tenant selection if multi-tenant popup appears
-     */
-    private void handleTenantSelection() throws IOException {
-        if (uiActions.isVisible(TENANT_POPUP)) {
-            System.out.println("[INFO] Tenant popup visible");
-            TENANT_NAME = PropertiesLoader.getTenantName();
-            uiActions.selectTenant(TENANT_POPUP, TENANT_NAME);
-        }
-    }
-   
-    
+    } 
 }
 
 

@@ -341,6 +341,18 @@ public class UIActions {
 		}
 
 	}
+	
+	/**
+     * Handle tenant selection if multi-tenant popup appears
+	 * @param tenantPopup 
+     */
+    public void handleTenantSelection(String tenantPopup) throws IOException {
+    	String TENANT_NAME=PropertiesLoader.getTenantName();
+    	if(isVisible(tenantPopup)) {
+    		System.out.println("[INFO] Tenant popup visible");
+    		selectTenant(tenantPopup,TENANT_NAME);
+    	}    	
+    }
 
 	// =========== unique method to click on element using java script, needed if
 	// other locator strategies are not stable ====================
@@ -482,6 +494,8 @@ public class UIActions {
 			return false;
 		}
 	}
+	
+	
 
 	// ============= Kendo strategies ==================
 
@@ -612,5 +626,7 @@ public class UIActions {
 			throw new RuntimeException("Error waiting for Kendo Angular page", e);
 		}
 	}
+	
+	 
 
 }

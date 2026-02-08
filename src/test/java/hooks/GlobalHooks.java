@@ -32,7 +32,7 @@ public class GlobalHooks {
         env = PropertiesLoader.effectiveEnv();
         OSName=System.getProperty("os.name");
         String browser = PropertiesLoader.effectiveBrowserCached(); //non static because shared in each scneario
-        applicationURL=PropertiesLoader.loadCached().getProperty("base.url");        
+        //applicationURL=PropertiesLoader.loadCached().getProperty("base.url");        
         
      // 2a) Read base.url with fail-fast
         baseUrl = config.getProperty("base.url");
@@ -51,7 +51,7 @@ public class GlobalHooks {
         ExtentReportMetada.put("Environment", env);
         ExtentReportMetada.put("OS Version", OSName);
 	    ExtentReportMetada.put("Browser", browser);
-	    ExtentReportMetada.put("Execution URL",applicationURL);
+	    ExtentReportMetada.put("Execution URL",baseUrl);
 	    ExtentReportMetada.put("Base Directory",PathManager.baseDirPath().toString());
 	    ExtentReportMetada.put("Reports Directory",PathManager.reportDir().toString());
 	    ExtentReportMetada.put("Screenshots Directory", PathManager.screenshotDir().toString());

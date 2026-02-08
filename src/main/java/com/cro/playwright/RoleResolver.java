@@ -22,6 +22,6 @@ public final class RoleResolver {
                 .map(t -> t.replace(ROLE_PREFIX, ""))
                 .findFirst()
                 .orElseThrow(() ->
-                        new IllegalStateException("No role found. Provide -Drole= or use @role_* tag"));
+                        new IllegalStateException("No role found. Provide -Drole= if you want to pass through CLI or use @role_* tag in each scenario for the feature files."));
     }
 }

@@ -13,6 +13,8 @@ import com.cro.playwright.SessionManager;
 import com.cro.settings.PathManager;
 import com.cro.settings.PropertiesLoader;
 import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.WaitUntilState;
 
 import io.cucumber.java.After;
 import io.cucumber.java.AfterStep;
@@ -39,6 +41,7 @@ public class ScenarioHooks {
         String role = RoleResolver.resolve(scenario);
         String username = PropertiesLoader.getUsernameForRole(role);
         String password = PropertiesLoader.getPasswordForRole(role);
+        int pageTimeOut=PropertiesLoader.getPageTimeout();
 
         // Push metadata to Extent
         ExtentReportMetada.put("User [Role: " + role + "]", username);
@@ -50,7 +53,7 @@ public class ScenarioHooks {
         BrowserInfo.captureOnce(BrowserManager.getBrowserVersion());
 
         // =========================
-        // Session handling (role+user)
+        // Session handling (role+user), this is place where actual URL is hit
         // =========================
         Path sessionPath = SessionManager.getOrCreateSession(role, username, () -> {
 
@@ -59,14 +62,22 @@ public class ScenarioHooks {
 
             try {
                 BrowserManager.getPage().navigate(
-                        PropertiesLoader.loadCached().getProperty("base.url")
+                        PropertiesLoader.loadCached().getProperty("base.url"),
+                        new Page.NavigateOptions()
+    			        .setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
+    			        .setTimeout(pageTimeOut)
                 );
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }           
             
             // ✅ NON-STATIC flow call (Pico managed)
-            loginFlow.performLogin(role, username, password);
+            try {
+				loginFlow.performLogin(role, username, password);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
             // Persist storage state
             BrowserManager.getContext().storageState(

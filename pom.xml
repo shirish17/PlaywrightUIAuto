@@ -39,11 +39,11 @@
 			<version>${cucumber.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- Dependency Injection support (optional, for sharing state) -->
 		<dependency>
 			<groupId>io.cucumber</groupId>
 			<artifactId>cucumber-picocontainer</artifactId>
-			<version>${cucumber.version}</version>
-			<scope>test</scope>
+			<version>${cucumber.version}</version>			
 		</dependency>
 
 
@@ -52,14 +52,6 @@
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<version>7.9.0</version>
-		</dependency>
-
-		<!-- Dependency Injection support (optional, for sharing state) -->
-		<dependency>
-			<groupId>io.cucumber</groupId>
-			<artifactId>cucumber-picocontainer</artifactId>
-			<version>${cucumber.version}</version>
-			<scope>test</scope>
 		</dependency>
 
 		<!-- Source:

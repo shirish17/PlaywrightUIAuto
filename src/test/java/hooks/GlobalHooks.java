@@ -31,8 +31,7 @@ public class GlobalHooks {
         config = PropertiesLoader.loadCached();
         env = PropertiesLoader.effectiveEnv();
         OSName=System.getProperty("os.name");
-        String browser = PropertiesLoader.effectiveBrowserCached(); //non static because shared in each scneario
-        //applicationURL=PropertiesLoader.loadCached().getProperty("base.url");        
+        String browser = PropertiesLoader.effectiveBrowserCached(); //non static because shared in each scenario
         
      // 2a) Read base.url with fail-fast
         baseUrl = config.getProperty("base.url");
@@ -56,21 +55,8 @@ public class GlobalHooks {
 	    ExtentReportMetada.put("Reports Directory",PathManager.reportDir().toString());
 	    ExtentReportMetada.put("Screenshots Directory", PathManager.screenshotDir().toString());
 	    ExtentReportMetada.put("Logs Directory",PathManager.logDir().toString());
-	    ExtentReportMetada.put("Downloads Directory",   PathManager.downloadDir().toString());
-	  
+	    ExtentReportMetada.put("Downloads Directory",   PathManager.downloadDir().toString());	  
 	    
-	    
- 
-        // 4) Extent report Info (ENV + BROWSER added here)
-        //ExtentService.getInstance().setSystemInfo("Environment", env);
-        //ExtentService.getInstance().setSystemInfo("OS Version",OSName);
-        //ExtentService.getInstance().setSystemInfo("Browser", browser);        
-        //ExtentService.getInstance().setSystemInfo("Execution URL",applicationURL);
-        //ExtentService.getInstance().setSystemInfo("Base Dir",        PathManager.baseDirPath().toString());
-        //ExtentService.getInstance().setSystemInfo("Reports Dir",     PathManager.reportDir().toString());
-        //ExtentService.getInstance().setSystemInfo("Screenshots Dir", PathManager.screenshotDir().toString());
-        //ExtentService.getInstance().setSystemInfo("Logs Dir",        PathManager.logDir().toString());
-        //ExtentService.getInstance().setSystemInfo("Downloads Dir",   PathManager.downloadDir().toString());
         System.out.println("dp.threads=" + System.getProperty("dp.threads") + " | Thread=" + Thread.currentThread().getName());
         
       

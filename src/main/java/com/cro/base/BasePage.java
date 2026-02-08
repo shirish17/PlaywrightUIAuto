@@ -6,7 +6,7 @@ public abstract class BasePage {
 
     protected final UIActions uiActions;
 
-    protected BasePage(UIActions uiActions) {
+    public BasePage(UIActions uiActions) {
         this.uiActions = uiActions;
     }
 }

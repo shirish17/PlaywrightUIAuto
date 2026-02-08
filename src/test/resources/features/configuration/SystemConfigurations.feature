@@ -1,24 +1,15 @@
 @smoke 
-Feature: System configuration page - Tabs with defaults and update capabilities
-  As a user
-  I want to validate default state and update behavior of tabs under system configuration page
-  So that configuration is correct and consitent across the application
+Feature: System configuration page - this page has below features
+  As a user with proper permission I can be able to perform:
+  a. check default state and update behavior across tabs
+  b. add new country, edit and delete an existing country  
 
-@role_edit
-  Scenario: Check initial state of the List(s) tab when the user opens it
-    When the user navigates to "List(s)" tab
-    Then the user should be on the "List(s)" tab
-    Then the "List(s)" tab displays following contols with default values
-      | type      | label           | expected        |
-      | text      | List label      | List label      |
-      | searchbox | Filter Items... | Filter Items... |
-      | linkText  | Country Name    | Country Name    |
 
 @role_create
-  Scenario Outline: Add a new active country
+  Scenario Outline: User with create role able to add a new country with active status
     When the user adds a country named "<country>" and activates it
     Then the country "<country>" appears in the list
 
     Examples:
       | country |
-      | country_DDMMYY     |
+      | Auto_CountryName     |

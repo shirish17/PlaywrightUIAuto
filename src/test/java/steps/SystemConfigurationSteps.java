@@ -4,8 +4,11 @@
  */
 package steps;
 
+import java.io.IOException;
+
 import com.cro.pages.configuration.SystemConfigurationPage;
 
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 
 public class SystemConfigurationSteps {	
@@ -25,21 +28,17 @@ public class SystemConfigurationSteps {
     }
 	
     @When("the user adds a country named {string} and activates it")
-    public void the_user_adds_a_country_named_and_activates_it(String countryTemplate) {
-        System.out.println("[STEP] Adding country with template: " + countryTemplate);
-        
-        // Generate country name with timestamp
-        String countryName = systemConfigPage.generateCountryName(countryTemplate);
-        
-        // Store for later verification
-        generatedCountryName = countryName;
-        
-        System.out.println("[STEP] Generated country name: " + countryName);
-        
+    public void the_user_adds_a_country_named_and_activates_it(String countryName) {
+        System.out.println("[STEP] Adding country with template: " + countryName);
         // All navigation is hidden in page layer - business doesn't care HOW
-        systemConfigPage.addCountryAndActivate(countryName);
-        
+        systemConfigPage.addCountryAndActivate(countryName);        
         System.out.println("[STEP] ✅ Country added: " + countryName);
+    }
+    
+    @Given("the user is on the country management page")
+    public void theUserIsOnTheCountryManagementPage() throws IOException {
+        // If navigation is required
+    	systemConfigPage.navigateToCountryManagementPage();
     }
 
 	

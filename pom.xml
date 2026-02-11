@@ -147,7 +147,7 @@
 
 					<!-- Single JVM (Playwright-safe) -->
 					<forkCount>1</forkCount>
-					<reuseForks>true</reuseForks>
+					<reuseForks>false</reuseForks>
 
 					<!-- 🔑 THIS is what controls Cucumber scenario parallelism -->
 					<dataproviderthreadcount>${dp.threads}</dataproviderthreadcount>

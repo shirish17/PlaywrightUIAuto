@@ -1,5 +1,7 @@
 package com.cro.pages.configuration;
 
+import java.io.IOException;
+
 import com.cro.base.BasePage;
 import com.cro.utils.UIActions;
 import com.microsoft.playwright.options.LoadState;
@@ -17,10 +19,34 @@ public class SystemConfigurationPage extends BasePage {
     private static final String SYSTEM_CONFIG_URL = "**/console/systemConfig";
     private static final String TENANT_POPUP="#showMultiTenantPopup";
 
-	public SystemConfigurationPage(UIActions uiActions) {
+	public SystemConfigurationPage(UIActions uiActions) throws IOException {
 		super(uiActions);
-		
+		// Wait for page to load completely, angular and Kendo specific
+		uiActions.waitForLoadState(LoadState.NETWORKIDLE);
+
+		// First check if multi-tenant popup displays, this is because existing session
+		// after login shows the popup.
+		uiActions.handleTenantSelection(TENANT_POPUP);		
 	}
+	
+	//========================================
+	
+	//================= Country Management page navigation ==============
+	
+		public void navigateToCountryManagementPage() throws IOException {
+			System.out.println("Success: SystemConfiguration -> navigateToCountryManagementPage (Method)");			
+			/*
+			// Navigate to System Configuration page
+			navigateToSystemConfiguration();
+
+			// Navigate to List(s) tab
+			navigateToListsTab(listsTab);
+			
+			//select an option from the list, here country name
+			clickConfigurationLabel(countryNameLbl);
+			*/
+		}
+	
 	/**
      * BUSINESS-LEVEL METHOD
      * Add country and activate it

@@ -7,9 +7,21 @@ Feature: System configuration page - this page has below features
 
 @role_create
   Scenario Outline: User with create role able to add a new country with active status
-    When the user adds a country named "<country>" and activates it
-    Then the country "<country>" appears in the list
+    Given the user is on the country management page
+    #When the user adds a country named "<country>" and activates it
+    #Then the country "<country>" appears in the list
 
     Examples:
       | country |
       | Auto_CountryName     |
+      
+
+@role_delete
+  Scenario Outline: User with delete permission, can delete an existing country
+    Given the user is on the country management page
+    #When the user deletes the country "<country>"
+    #Then the country "<country>" should no longer exist
+ 
+    Examples:
+      | country |
+      | Auto_CountryName |

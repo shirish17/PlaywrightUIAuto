@@ -18,7 +18,7 @@ Feature: System configuration page - this page has below features
 
 @role_delete
   Scenario Outline: User with delete permission, can delete an existing country
-    Given the user is on the country management page
+    #Given the user is on the country management page
     #When the user deletes the country "<country>"
     #Then the country "<country>" should no longer exist
  

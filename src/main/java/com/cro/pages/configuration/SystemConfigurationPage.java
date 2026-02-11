@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import com.cro.base.BasePage;
 import com.cro.utils.UIActions;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.options.LoadState;
 
 /**
@@ -12,12 +14,28 @@ import com.microsoft.playwright.options.LoadState;
  * Business layer doesn't need to know these details
  */
 public class SystemConfigurationPage extends BasePage {
-	// Navigation selectors
-    private static final String SYSTEM_TAB = "#systemTab";
-    private static final String SYSTEM_CONFIG_MENU = "ul.dropdown_menu:has(a[routerlink='/console/systemConfig'])";
-    private static final String SYSTEM_CONFIG_LINK = "a[routerlink='/console/systemConfig']";
-    private static final String SYSTEM_CONFIG_URL = "**/console/systemConfig";
-    private static final String TENANT_POPUP="#showMultiTenantPopup";
+	// ========= System Configuration page objects definition ==============
+		private static final String CONFIGURATION_LINK = "#systemTab";
+		private static final String CONFIGURATION_MENU = "#systemTab >> ul.dropdown_menu";
+		private static final String MENU_CONTAINER = "ul.dropdown_menu";
+		private static final String LINK_ROUTER = "a[routerlink='/console/systemConfig']";
+		private static final String LINK_NAME = "System Configuration";
+		private static final String SYSTEM_CONFIG_URL = "**/console/systemConfig";
+		private static final String TENANT_POPUP = "#showMultiTenantPopup";
+		private static final String LISTS_TAB = "List(s)";
+		private static final String COUNTRY_NAME = "Country Name";
+		private static final String NEW_OPTIONS = "div[role='dialog']:has(h2:has-text('New Option'))";
+		private static final String OPTION_NAME_INPUT = "div:has(> span:has-text('Option Name')) input.k-input-inner[type='text']";
+		private static final String SAVEBTN_ON_DIALOG = "Save";
+		private static final String SAVEBTN_ON_ACTIONS = "span.leftSideBarActionItemsLabel:has-text('Save')";
+		private static final String AVAILABLE_OPTION_CONTAINER =
+		        ":has(h2:has-text('Available Options'), " +
+		        " h3:has-text('Available Options'), " +
+		        " label:has-text('Available Options'), " +
+		        " span:has-text('Available Options')) " +
+		        " ul[role='listbox'].k-list-ul";
+
+		private static final String AVAILABLE_OPTION_CONTAINER_BY_ROLE="ul[role='listbox'].k-list-ul"; //this is for fallback plan
 
 	public SystemConfigurationPage(UIActions uiActions) throws IOException {
 		super(uiActions);
@@ -29,16 +47,34 @@ public class SystemConfigurationPage extends BasePage {
 		uiActions.handleTenantSelection(TENANT_POPUP);		
 	}
 	
-	//========================================
+	// ========== Create page level objects =============
+		// list tab
+		Locator listsTab = uiActions.getByRole(AriaRole.TAB, LISTS_TAB);
+		
+		//Country Name label
+		Locator countryNameLbl = uiActions.getLocatorByExactTextMatch(COUNTRY_NAME, true);
+		
+		// NEW_OPTIONS from Action Menu
+		Locator newOptionsLbl = uiActions.getLocatorByExactTextMatch(NEW_OPTIONS, true);
+		
+		// Click Save from Actions Menu
+		Locator saveBtnOnActions = uiActions.locator(SAVEBTN_ON_ACTIONS);
+		
+		//Available options list box container
+		Locator availableOptionListBox = uiActions.locator(AVAILABLE_OPTION_CONTAINER).first();
+		// Available options list box container fallback strategy
+		Locator availableOptionListBox_fallback=  uiActions.locator(AVAILABLE_OPTION_CONTAINER_BY_ROLE).first();
+
+		//=====================================================
 	
 	//================= Country Management page navigation ==============
 	
 		public void navigateToCountryManagementPage() throws IOException {
 			System.out.println("Success: SystemConfiguration -> navigateToCountryManagementPage (Method)");			
-			/*
+			
 			// Navigate to System Configuration page
 			navigateToSystemConfiguration();
-
+			/*
 			// Navigate to List(s) tab
 			navigateToListsTab(listsTab);
 			
@@ -57,19 +93,11 @@ public class SystemConfigurationPage extends BasePage {
     public void addCountryAndActivate(String countryName) {
         try {
             System.out.println("[PAGE] Starting add country flow for: " + countryName);
-            
-            // Wait for page to load completely
-            uiActions.waitForLoadState(LoadState.NETWORKIDLE);
-            
-          //First check if multi-tenant popup displays, this is because existing session after login shows the popup.
-            uiActions.handleTenantSelection(TENANT_POPUP);
-            
-            
             // Step 1: Navigate to System Configuration page
             navigateToSystemConfiguration();
             
             // Step 2: Navigate to Lists tab
-            //navigateToListsTab();
+            navigateToListsTab(listsTab);
             
             // Step 3: Click Country Name
             //clickCountryName();
@@ -87,48 +115,54 @@ public class SystemConfigurationPage extends BasePage {
     // These are hidden from business layer - they're implementation details
 
     /**
-     * Navigate to System Configuration page
-     */
-    private void navigateToSystemConfiguration() {
-        try {
-            System.out.println("[PAGE] Navigating to System Configuration page");
-            Thread.sleep(5000);
-            // Scroll and hover on System tab
-            uiActions.mouseHover(SYSTEM_TAB); 
-            Thread.sleep(10000);
-            
-         // Wait for dropdown menu and get locator
-            uiActions.waitAndGetLocator(SYSTEM_CONFIG_MENU);   
-            
-            Thread.sleep(10000);
-            // Click System Configuration link
-            uiActions.click(SYSTEM_CONFIG_LINK);          
-            
-            
-            // Wait for URL change (SPA navigation)
-            uiActions.waitForURLRouting(SYSTEM_CONFIG_URL);            
-            
-            
-            // Wait for page ready
-            uiActions.waitForKendoAngularPageReady();
-            
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to navigate to System Configuration page", e);
-        }
-    }
+	 * Navigate to System Configuration page
+	 */
+	private void navigateToSystemConfiguration() {
+		try {
+			System.out.println("[PAGE] Navigating to System Configuration page");
 
-	public void navigateToTab(String tabName) {
-		// TODO Auto-generated method stub
+			// Scroll and hover on System tab
+			uiActions.mouseHover(CONFIGURATION_LINK);
+			
+			// 2) Build the menu container then constrain it with :has(...)
+			Locator menu = uiActions.locator(MENU_CONTAINER);
+			// menu that contains either the routerlink OR visible link text
+			Locator sysMenu = uiActions.has(menu, LINK_ROUTER + ", a:has-text('" + LINK_NAME + "')");
+			uiActions.waitVisible(sysMenu);
+
+			// 3) Inside this specific menu, click the link (role preferred)
+			// Locator sysConfigLink =
+			uiActions.getByRoleWithin(sysMenu, AriaRole.LINK, LINK_NAME, true);
+			// Fallback if accessible name doesn’t work in your app:
+			Locator sysConfigLink = uiActions.within(sysMenu, LINK_ROUTER).first();
+
+			uiActions.clickOnElement(sysConfigLink);
+
+			// 4) Wait for SPA route + page ready
+			uiActions.waitForURLRouting(SYSTEM_CONFIG_URL);
 		
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to navigate to System Configuration page", e);
+		}
+	}
+
+
+    /*
+	 * Navigate to List(s) tab
+	 */
+	private void navigateToListsTab(Locator listsTab) {
+		uiActions.clickOnElement(listsTab);
 	}
 
 	
 
-	public String generateCountryName(String countryTemplate) {
-		// TODO Auto-generated method stub
-		return null;
+	/*
+	 * This will select configurable option from the list
+	 * Example: CountryName
+	 */
+	private void clickConfigurationLabel(Locator option) {
+		uiActions.clickOnElement(countryNameLbl);		
 	}
-
 	
-	
+		
 }

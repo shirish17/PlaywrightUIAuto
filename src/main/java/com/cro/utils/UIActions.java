@@ -45,8 +45,7 @@ public class UIActions {
 	}
 
 	/**
-	 * Create locator by text content (exact or partial match)
-	 * 
+	 * Create locator by text content (exact or partial match)	 * 
 	 * @param text - Text to search for
 	 * @return Locator
 	 */
@@ -108,6 +107,47 @@ public class UIActions {
 	public Locator getByRole(AriaRole role, String name, boolean exact) {
 		return page().getByRole(role, new Page.GetByRoleOptions().setName(name).setExact(exact));
 	}
+	/**
+	 * Create locator by ARIA role with name and exact match
+	 * 
+	 * @param role  - ARIA role
+	 * @param name  - Accessible name
+	 * @param exact - If true, requires exact match
+	 * @return Locator
+	 */
+	
+	// 2) Find child inside a parent
+	public Locator within(Locator parent, String childSelector) {
+		return parent.locator(childSelector);
+	}
+
+	// 3) Apply :has(...) on a container, scoped to that container
+	public Locator has(Locator container, String descendantSelector) {
+		// :scope ensures the :has(...) is relative to this container only
+		return container.locator(":scope:has(" + descendantSelector + ")");
+	}
+
+	// 4) Role-based search inside a parent
+
+	public Locator getByRoleWithin(Locator parent, AriaRole role, String name, boolean exact) {
+		return parent.getByRole(role, new Locator.GetByRoleOptions().setName(name).setExact(exact)																									
+		);
+	}
+	
+	/**
+	 * Create locator by tag + partial text match with optional index
+	 *
+	 * @param tag  - HTML tag (e.g. div, span)
+	 * @param text - Text to match
+	 * @param index - Zero-based index (use -1 if not needed and .nth() is NOT called)
+	 */
+	public Locator getByTagAndText(String tag, String text, int index) {
+	    Locator locator = page()
+	            .locator(tag)
+	            .filter(new Locator.FilterOptions().setHasText(text));
+
+	    return index >= 0 ? locator.nth(index) : locator;
+	}
 
 	// ============= UI Standard actions ==================
 
@@ -133,10 +173,14 @@ public class UIActions {
 	 * This method will click directly on the element by considering locator
 	 * strategy
 	 */
-	private void clickOnElement(Locator element) {
+	public void clickOnElement(Locator element) {
 		try {
-			waitForVisible(element, ElementTimeout);
+			element.waitFor(
+					new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(ElementTimeout));
+			waitForKendoAngularPageReady();// BEFORE click (UI must be idle)
+			waitForAllKendoLoadersComplete();   
 			element.click();
+			waitForAllKendoLoadersComplete();   // AFTER click (wait for async work)
 		} catch (TimeoutError e) {
 			throw new RuntimeException("Failed to click element: " + element, e);
 		} catch (Exception e) {
@@ -381,6 +425,26 @@ public class UIActions {
 	}
 
 	// ============= UI wait strategy ==================
+	// 1) Wait for a Locator (overload)
+		/*
+		 * This method accepts Locator as argument and wait till the element visible,
+		 * wait is max out till ElementTimeout of 5sec
+		 */
+		public Locator waitVisible(Locator locator) {
+			locator.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE)
+					.setTimeout(ElementTimeout));
+			return locator;
+		}
+		public Locator waitForElementVisibleUsingOptions(String selector) {
+			try {
+				Locator locator = page().locator(selector);
+				locator.waitFor(
+						new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(ElementTimeout));
+				return locator;
+			} catch (TimeoutError e) {
+				throw new TimeoutError("Element not visible within " + ElementTimeout + "for the element:" + selector);
+			}
+		}
 	/**
 	 * Wait for element to be visible and return the locator Useful when you need to
 	 * chain further actions on the locator

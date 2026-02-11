@@ -58,7 +58,7 @@ public class ScenarioHooks {
                     PropertiesLoader.loadCached().getProperty("base.url"),
                     new Page.NavigateOptions()
                         .setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
-                        .setTimeout(pageTimeout)
+                        .setTimeout(120000) //hard coded here since sometime application goes very slow, this is dynamic wait
                 );
                 
                 // Perform login
